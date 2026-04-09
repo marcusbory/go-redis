@@ -4,6 +4,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"strings"
 )
 
 func main() {
@@ -33,11 +34,34 @@ func main() {
 			fmt.Println(err)
 			return
 		}
+		fmt.Println("value: ", value)
 
-		_ = value
+		// ensure we have an array, and it's not empty
+		if value.typ != "array" {
+			fmt.Println("Invalid request, expected array")
+			continue
+		}
 
-		// this writer will write the response back to the client
+		if len(value.array) == 0 {
+			fmt.Println("Invalid request, expected array length > 0")
+			continue
+		}
+
+		// command is the first element of the array, the rest are the arguments
+		command := strings.ToUpper(value.array[0].bulk)
+		args := value.array[1:]
+
 		writer := NewWriter(conn)
-		writer.Write(Value{typ: "string", str: "OK"})
+
+		// ok is an idiom to check the success of a function
+		handler, ok := Handlers[command]
+		if !ok {
+			fmt.Println("Invalid command: ", command)
+			writer.Write(Value{typ: "string", str: "Invalid command: " + command})
+			continue
+		}
+
+		result := handler(args)
+		writer.Write(result)
 	}
 }
