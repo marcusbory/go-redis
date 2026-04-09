@@ -18,6 +18,28 @@ func main() {
 	// will close when main returns
 	defer l.Close()
 
+	aof, err := NewAof("database.aof")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer aof.Close()
+
+	// To sync in memory DB from AOF
+	fmt.Println("Reading from AOF")
+	aof.Read(func(value Value) {
+		command := strings.ToUpper(value.array[0].bulk)
+		args := value.array[1:]
+
+		handler, ok := Handlers[command]
+		if !ok {
+			fmt.Println("Invalid command: ", command)
+			return
+		}
+
+		handler(args)
+	})
+
 	// Listen for connections
 	conn, err := l.Accept()
 	if err != nil {
@@ -59,6 +81,11 @@ func main() {
 			fmt.Println("Invalid command: ", command)
 			writer.Write(Value{typ: "string", str: "Invalid command: " + command})
 			continue
+		}
+
+		// write to AOF if the command is SET or HSET - GET, HGET, HGETALL are read only (clog up aof)
+		if command == "SET" || command == "HSET" {
+			aof.Write(value)
 		}
 
 		result := handler(args)
