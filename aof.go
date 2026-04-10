@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io"
 	"os"
 	"sync"
@@ -72,8 +73,11 @@ func (aof *Aof) Read(callback func(value Value)) error {
 		if err == nil {
 			callback(value)
 		}
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
+		}
+		if err != nil {
+			return err
 		}
 	}
 
