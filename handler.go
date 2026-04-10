@@ -52,7 +52,7 @@ func get(args []Value) Value {
 	SETsMu.RUnlock()
 
 	if !ok {
-		return Value{typ: "err", bulk: "ERR value not found"}
+		return Value{typ: "null"}
 	}
 
 	return Value{typ: "bulk", bulk: value}
@@ -91,13 +91,17 @@ func hget(args []Value) Value {
 	key := args[1].bulk
 
 	HSETsMu.RLock()
-	value, ok := HSETs[hash][key]
-	HSETsMu.RUnlock()
-
+	_, ok := HSETs[hash]
 	if !ok {
+		HSETsMu.RUnlock()
 		return Value{typ: "null"}
 	}
 
+	value, ok := HSETs[hash][key]
+	HSETsMu.RUnlock()
+	if !ok {
+		return Value{typ: "null"}
+	}
 	return Value{typ: "bulk", bulk: value}
 }
 
@@ -118,8 +122,9 @@ func hgetall(args []Value) Value {
 	}
 
 	var array []Value
-	for key, value := range values {
-		array = append(array, Value{typ: "bulk", bulk: key + ": " + value})
+	for k, v := range values {
+		array = append(array, Value{typ: "bulk", bulk: k})
+		array = append(array, Value{typ: "bulk", bulk: v})
 	}
 
 	return Value{typ: "array", array: array}
