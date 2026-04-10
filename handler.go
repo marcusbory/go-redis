@@ -122,6 +122,9 @@ func hgetall(args []Value) Value {
 	}
 
 	var array []Value
+	// 1. preserves structure of the hash set, no need to parse / flatten
+	// 2. protocol should carry data, not presentation (that's why use RESP)
+	// 3. easy client implementation, deterministic response, no string splits
 	for k, v := range values {
 		array = append(array, Value{typ: "bulk", bulk: k})
 		array = append(array, Value{typ: "bulk", bulk: v})
