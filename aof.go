@@ -63,6 +63,8 @@ func (aof *Aof) Read(callback func(value Value)) error {
 	aof.mu.Lock()
 	defer aof.mu.Unlock()
 
+	// reset the file pointer to the beginning of the file
+	aof.file.Seek(0, io.SeekStart)
 	resp := NewResp(aof.file)
 
 	for {
