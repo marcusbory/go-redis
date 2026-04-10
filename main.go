@@ -40,7 +40,7 @@ func main() {
 		handler(args)
 	})
 
-	// Listen for connections
+	// Listen for connections - as of now: single connection only
 	conn, err := l.Accept()
 	if err != nil {
 		fmt.Println(err)
