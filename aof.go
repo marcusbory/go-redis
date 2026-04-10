@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"io"
 	"os"
 	"sync"
@@ -10,8 +9,8 @@ import (
 
 type Aof struct {
 	file *os.File
-	rd   *bufio.Reader
-	mu   sync.Mutex
+	// rd   *bufio.Reader
+	mu sync.Mutex
 }
 
 func NewAof(path string) (*Aof, error) {
@@ -22,7 +21,7 @@ func NewAof(path string) (*Aof, error) {
 
 	aof := &Aof{
 		file: f,
-		rd:   bufio.NewReader(f),
+		// rd:   bufio.NewReader(f),
 	}
 
 	// Start a goroutine to sync AOF to disk every 1 second
